@@ -1,0 +1,36 @@
+package vn.ttg.roadmap.weatherapiservice.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
+/**
+ * Request DTO for historical weather endpoint
+ * 
+ * @author ttg
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class HistoricalWeatherRequest {
+    
+    @NotBlank(message = "Location cannot be null or empty")
+    @Size(min = 2, max = 100, message = "Location must be between 2 and 100 characters")
+    private String location;
+    
+    @NotNull(message = "Start date is required")
+    @Past(message = "Start date must be in the past")
+    private LocalDate startDate;
+    
+    @NotNull(message = "End date is required")
+    @Past(message = "End date must be in the past")
+    private LocalDate endDate;
+}
