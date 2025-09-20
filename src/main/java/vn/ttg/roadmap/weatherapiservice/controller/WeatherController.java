@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,14 +19,12 @@ import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @RestController
-@RequestMapping("/api/weather")
+@RequestMapping("/api/v1/weather")
 public class WeatherController {
 
-    private static final Logger logger = LoggerFactory.getLogger(WeatherController.class);
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Logger LOGGER = LoggerFactory.getLogger(WeatherController.class);
 
     @Autowired
     private WeatherService weatherService;
@@ -37,10 +34,10 @@ public class WeatherController {
      * @param location Location name (city, country or coordinates)
      * @return WeatherResponse containing current weather data
      */
-    @GetMapping("/current/{location}")
-    public ResponseEntity<WeatherResponse> getCurrentWeather(@PathVariable String location) {
+    @GetMapping("/current")
+    public ResponseEntity<WeatherResponse> getCurrentWeather(@RequestParam String location) {
         
-        logger.info("Received request for current weather: {}", location);
+        LOGGER.info("Received request for current weather: {}", location);
         
         // Create request object for validation
         CurrentWeatherRequest request = new CurrentWeatherRequest(location);
@@ -49,7 +46,7 @@ public class WeatherController {
         validateCurrentWeatherRequest(request);
         
         WeatherResponse response = weatherService.getCurrentWeather(location);
-        logger.info("Successfully retrieved current weather for: {}", location);
+        LOGGER.info("Successfully retrieved current weather for: {}", location);
         return ResponseEntity.ok(response);
     }
 
@@ -60,25 +57,22 @@ public class WeatherController {
      * @param endDate End date in yyyy-MM-dd format
      * @return WeatherResponse containing forecast data
      */
-    @GetMapping("/forecast/{location}")
+    @GetMapping("/forecast")
     public ResponseEntity<WeatherResponse> getForecast(
-            @PathVariable String location,
+            @RequestParam String location,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         
-        logger.info("Received request for forecast: {} from {} to {}", location, startDate, endDate);
+        LOGGER.info("Received request for forecast: {} from {} to {}", location, startDate, endDate);
         
         // Create request object for validation
         WeatherForecastRequest request = new WeatherForecastRequest(location, startDate, endDate);
         
         // Validate the request
         validateForecastRequest(request);
-        
-        String startDateStr = startDate.format(DATE_FORMATTER);
-        String endDateStr = endDate.format(DATE_FORMATTER);
-        
-        WeatherResponse response = weatherService.getForecast(location, startDateStr, endDateStr);
-        logger.info("Successfully retrieved forecast for: {} from {} to {}", location, startDate, endDate);
+
+        WeatherResponse response = weatherService.getForecast(location, startDate, endDate);
+        LOGGER.info("Successfully retrieved forecast for: {} from {} to {}", location, startDate, endDate);
         return ResponseEntity.ok(response);
     }
 
@@ -89,51 +83,23 @@ public class WeatherController {
      * @param endDate End date in yyyy-MM-dd format
      * @return WeatherResponse containing historical weather data
      */
-    @GetMapping("/historical/{location}")
+    @GetMapping("/historical")
     public ResponseEntity<WeatherResponse> getHistoricalWeather(
-            @PathVariable String location,
+            @RequestParam String location,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         
-        logger.info("Received request for historical weather: {} from {} to {}", location, startDate, endDate);
+        LOGGER.info("Received request for historical weather: {} from {} to {}", location, startDate, endDate);
         
         // Create request object for validation
         HistoricalWeatherRequest request = new HistoricalWeatherRequest(location, startDate, endDate);
         
         // Validate the request
         validateHistoricalWeatherRequest(request);
-        
-        String startDateStr = startDate.format(DATE_FORMATTER);
-        String endDateStr = endDate.format(DATE_FORMATTER);
-        
-        WeatherResponse response = weatherService.getHistorical(location, startDateStr, endDateStr);
-        logger.info("Successfully retrieved historical weather for: {} from {} to {}", 
-                   location, startDate, endDate);
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get weather data for a specific location and single date
-     * @param location Location name (city, country or coordinates)
-     * @param date Date in yyyy-MM-dd format
-     * @return WeatherResponse containing weather data for the specified date
-     */
-    @GetMapping("/date/{location}")
-    public ResponseEntity<WeatherResponse> getWeatherForDate(
-            @PathVariable String location,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-        
-        logger.info("Received request for weather on specific date: {} for {}", date, location);
-        
-        // Create request object for validation
-        WeatherDateRequest request = new WeatherDateRequest(location, date);
-        
-        // Validate the request
-        validateWeatherDateRequest(request);
-        
-        String dateStr = date.format(DATE_FORMATTER);
-        WeatherResponse response = weatherService.getForecast(location, dateStr, dateStr);
-        logger.info("Successfully retrieved weather for: {} on {}", location, date);
+        WeatherResponse response = weatherService.getHistorical(location, startDate, endDate);
+        LOGGER.info("Successfully retrieved historical weather for: {} from {} to {}",
+                   location, startDate, endDate);
         return ResponseEntity.ok(response);
     }
 

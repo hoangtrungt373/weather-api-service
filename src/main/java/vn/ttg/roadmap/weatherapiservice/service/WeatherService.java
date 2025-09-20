@@ -1,5 +1,8 @@
 package vn.ttg.roadmap.weatherapiservice.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,8 @@ import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
 @Service
 public class WeatherService {
 
-    private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WeatherService.class);
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Autowired
     private RestTemplate restTemplate;
@@ -36,68 +40,63 @@ public class WeatherService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetCurrentWeather")
-    @Retry(name = "weatherService")
-    @RateLimiter(name = "weatherService")
-    @TimeLimiter(name = "weatherService")
-    @Bulkhead(name = "weatherService")
-    @Cacheable(value = "weathers-current",
-            key = "#location + ':today'",
-            unless = "#result == null")
+    //    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetCurrentWeather")
+//    @Retry(name = "weatherService")
+//    @RateLimiter(name = "weatherService")
+//    @TimeLimiter(name = "weatherService")
+//    @Bulkhead(name = "weatherService")
+    @Cacheable(value = "weathers-current", keyGenerator = "weatherKeyGenerator")
     public WeatherResponse getCurrentWeather(String location) {
-        logger.info("Fetching current weather for location: {}", location);
-        return fetchWeather(location, "today", "today");
+        LOGGER.info("Fetching current weather for location: {}", location);
+        return fetchWeather(location, LocalDate.now(), LocalDate.now());
     }
 
-    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetForecast")
-    @Retry(name = "weatherService")
-    @RateLimiter(name = "weatherService")
-    @TimeLimiter(name = "weatherService")
-    @Bulkhead(name = "weatherService")
-    @Cacheable(value = "weathers-forecast",
-            key = "#location + ':' + #date1 + ':' + #date2",
-            unless = "#result == null")
-    public WeatherResponse getForecast(String location, String date1, String date2) {
-        logger.info("Fetching forecast for location: {}, dates: {} to {}", location, date1, date2);
+//    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetForecast")
+//    @Retry(name = "weatherService")
+//    @RateLimiter(name = "weatherService")
+//    @TimeLimiter(name = "weatherService")
+//    @Bulkhead(name = "weatherService")
+    @Cacheable(value = "weathers-forecast", keyGenerator = "weatherKeyGenerator")
+    public WeatherResponse getForecast(String location, LocalDate date1, LocalDate date2) {
+        LOGGER.info("Fetching forecast for location: {}, dates: {} to {}", location, date1, date2);
         return fetchWeather(location, date1, date2);
     }
 
-    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetHistorical")
-    @Retry(name = "weatherService")
-    @RateLimiter(name = "weatherService")
-    @TimeLimiter(name = "weatherService")
-    @Bulkhead(name = "weatherService")
-    @Cacheable(value = "weathers-historical",
-            key = "#location + ':' + #date1 + ':' + #date2",
-            unless = "#result == null")
-    public WeatherResponse getHistorical(String location, String date1, String date2) {
-        logger.info("Fetching historical weather for location: {}, dates: {} to {}", location, date1, date2);
+//    @CircuitBreaker(name = "weatherService", fallbackMethod = "fallbackGetHistorical")
+//    @Retry(name = "weatherService")
+//    @RateLimiter(name = "weatherService")
+//    @TimeLimiter(name = "weatherService")
+//    @Bulkhead(name = "weatherService")
+    @Cacheable(value = "weathers-historical", keyGenerator = "weatherKeyGenerator")
+    public WeatherResponse getHistorical(String location, LocalDate date1, LocalDate date2) {
+        LOGGER.info("Fetching historical weather for location: {}, dates: {} to {}", location, date1, date2);
         return fetchWeather(location, date1, date2);
     }
 
-    private WeatherResponse fetchWeather(String location, String date1, String date2) {
-        String url = String.format("%s/%s/%s/%s?key=%s", baseUrl, location, date1, date2, apiKey);
-        logger.debug("Making API call to: {}", url);
-        
+    private WeatherResponse fetchWeather(String location, LocalDate date1, LocalDate date2) {
+
+        String url = String.format("%s/%s/%s/%s?key=%s", baseUrl, location, date1.format(DATE_FORMATTER), date2.format(DATE_FORMATTER), apiKey);
+        LOGGER.debug("Making API call to: {}", url);
+
         try {
             WeatherResponse response = restTemplate.getForObject(url, WeatherResponse.class);
-            logger.debug("Successfully fetched weather data for location: {}", location);
+            LOGGER.debug("Successfully fetched weather data for location: {}", location);
             return response;
         } catch (HttpClientErrorException e) {
-            logger.error("Client error when fetching weather for location: {}, status: {}, message: {}", 
-                        location, e.getStatusCode(), e.getMessage());
+            LOGGER.error("Client error when fetching weather for location: {}, status: {}, message: {}",
+                    location, e.getStatusCode(), e.getMessage());
             throw new WeatherApiException("Invalid city or parameters: " + e.getMessage(), e);
         } catch (HttpServerErrorException e) {
-            logger.error("Server error when fetching weather for location: {}, status: {}, message: {}", 
-                        location, e.getStatusCode(), e.getMessage());
+            LOGGER.error("Server error when fetching weather for location: {}, status: {}, message: {}",
+                    location, e.getStatusCode(), e.getMessage());
             throw new WeatherApiException("Weather API server error. Try later.", e);
         } catch (ResourceAccessException e) {
-            logger.error("Connection error when fetching weather for location: {}, message: {}", 
-                        location, e.getMessage());
+            LOGGER.error("Connection error when fetching weather for location: {}, message: {}",
+                    location, e.getMessage());
             throw new WeatherApiException("Weather API unavailable. Try later.", e);
         } catch (Exception e) {
-            logger.error("Unexpected error when fetching weather for location: {}, message: {}", 
-                        location, e.getMessage(), e);
+            LOGGER.error("Unexpected error when fetching weather for location: {}, message: {}",
+                    location, e.getMessage(), e);
             throw new WeatherApiException("Unexpected error occurred while fetching weather data.", e);
         }
     }
@@ -106,14 +105,14 @@ public class WeatherService {
      * Fallback method for getCurrentWeather
      */
     public WeatherResponse fallbackGetCurrentWeather(String location, Throwable t) {
-        logger.warn("Circuit breaker opened for getCurrentWeather, location: {}, error: {}", location, t.getMessage());
+        LOGGER.warn("Circuit breaker opened for getCurrentWeather, location: {}, error: {}", location, t.getMessage());
         String key = "weathers-current::" + location + ":today";
         WeatherResponse cached = (WeatherResponse) redisTemplate.opsForValue().get(key);
         if (cached != null) {
-            logger.info("Returning cached current weather data for location: {}", location);
+            LOGGER.info("Returning cached current weather data for location: {}", location);
             return cached;
         }
-        logger.error("No cached fallback available for current weather, location: {}", location);
+        LOGGER.error("No cached fallback available for current weather, location: {}", location);
         throw new WeatherApiException("Weather service unavailable and no cached data found", t);
     }
 
@@ -121,15 +120,15 @@ public class WeatherService {
      * Fallback method for getForecast
      */
     public WeatherResponse fallbackGetForecast(String location, String date1, String date2, Throwable t) {
-        logger.warn("Circuit breaker opened for getForecast, location: {}, dates: {} to {}, error: {}", 
-                   location, date1, date2, t.getMessage());
+        LOGGER.warn("Circuit breaker opened for getForecast, location: {}, dates: {} to {}, error: {}",
+                location, date1, date2, t.getMessage());
         String key = "weathers-forecast::" + location + ":" + date1 + ":" + date2;
         WeatherResponse cached = (WeatherResponse) redisTemplate.opsForValue().get(key);
         if (cached != null) {
-            logger.info("Returning cached forecast data for location: {}, dates: {} to {}", location, date1, date2);
+            LOGGER.info("Returning cached forecast data for location: {}, dates: {} to {}", location, date1, date2);
             return cached;
         }
-        logger.error("No cached fallback available for forecast, location: {}, dates: {} to {}", location, date1, date2);
+        LOGGER.error("No cached fallback available for forecast, location: {}, dates: {} to {}", location, date1, date2);
         throw new WeatherApiException("Weather service unavailable and no cached data found", t);
     }
 
@@ -137,15 +136,15 @@ public class WeatherService {
      * Fallback method for getHistorical
      */
     public WeatherResponse fallbackGetHistorical(String location, String date1, String date2, Throwable t) {
-        logger.warn("Circuit breaker opened for getHistorical, location: {}, dates: {} to {}, error: {}", 
-                   location, date1, date2, t.getMessage());
+        LOGGER.warn("Circuit breaker opened for getHistorical, location: {}, dates: {} to {}, error: {}",
+                location, date1, date2, t.getMessage());
         String key = "weathers-historical::" + location + ":" + date1 + ":" + date2;
         WeatherResponse cached = (WeatherResponse) redisTemplate.opsForValue().get(key);
         if (cached != null) {
-            logger.info("Returning cached historical data for location: {}, dates: {} to {}", location, date1, date2);
+            LOGGER.info("Returning cached historical data for location: {}, dates: {} to {}", location, date1, date2);
             return cached;
         }
-        logger.error("No cached fallback available for historical data, location: {}, dates: {} to {}", location, date1, date2);
+        LOGGER.error("No cached fallback available for historical data, location: {}, dates: {} to {}", location, date1, date2);
         throw new WeatherApiException("Weather service unavailable and no cached data found", t);
     }
 }

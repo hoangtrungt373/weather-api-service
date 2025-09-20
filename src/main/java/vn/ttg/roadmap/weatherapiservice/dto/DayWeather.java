@@ -18,4 +18,5 @@ public class DayWeather {
     private double tempmax;
     private double tempmin;
     private String conditions;
+    private String description;
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,8 @@ import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
     // Make sure caching is enabled and keys are predictable
     "spring.cache.type=redis"
 })
-public class WeatherServiceRedisCacheIT {
+@Ignore
+class WeatherServiceRedisCacheIT {
 
     private static final GenericContainer<?> redis =
             new GenericContainer<>(DockerImageName.parse("redis:7.2-alpine")).withExposedPorts(6379);

@@ -6,6 +6,13 @@ spring:
       host: localhost
       port: 6379
 
+  devtools:
+    restart:
+      enabled: false
+
+server:
+  port: 8081
+
 cache:
   ttl:
     weathers-current: 15m
@@ -15,7 +22,7 @@ cache:
 weather:
   api:
     base-url: https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline
-    key: YOUR_API_KEY
+    key: T9FM85UY3S5VGQWPGKZYQL5UR
     connect-timeout: 3s
     read-timeout: 5s
 
