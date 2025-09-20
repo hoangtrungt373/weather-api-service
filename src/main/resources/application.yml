@@ -26,70 +26,11 @@ weather:
     connect-timeout: 3s
     read-timeout: 5s
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      weatherService:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        slidingWindowType: COUNT_BASED
-        minimumNumberOfCalls: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 5s
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-
-  retry:
-    instances:
-      weatherService:
-        maxAttempts: 3
-        waitDuration: 2s
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - org.springframework.web.client.HttpServerErrorException
-          - org.springframework.web.client.ResourceAccessException
-        ignoreExceptions:
-          - vn.ttg.roadmap.weatherapiservice.service.WeatherApiException
-
-  ratelimiter:
-    instances:
-      weatherService:
-        limitForPeriod: 10
-        limitRefreshPeriod: 1s
-        timeoutDuration: 3s
-        registerHealthIndicator: true
-
-  timelimiter:
-    instances:
-      weatherService:
-        timeoutDuration: 3s
-        cancelRunningFuture: true
-
-  bulkhead:
-    instances:
-      weatherService:
-        maxConcurrentCalls: 10
-        maxWaitDuration: 2s
-
-  thread-pool-bulkhead:
-    instances:
-      weatherService:
-        maxThreadPoolSize: 5
-        coreThreadPoolSize: 3
-        queueCapacity: 20
-        keepAliveDuration: 20ms
-
 management:
   endpoints:
     web:
       exposure:
-        include: health,circuitbreakers,ratelimiters,retries,bulkheads,timelimiters
+        include: health
   endpoint:
     health:
       show-details: always
-  health:
-    circuitbreakers:
-      enabled: true
-    ratelimiters:
-      enabled: true

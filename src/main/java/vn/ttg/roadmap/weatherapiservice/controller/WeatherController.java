@@ -1,5 +1,7 @@
 package vn.ttg.roadmap.weatherapiservice.controller;
 
+import java.time.LocalDate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import vn.ttg.roadmap.weatherapiservice.dto.CurrentWeatherRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.HistoricalWeatherRequest;
-import vn.ttg.roadmap.weatherapiservice.dto.WeatherDateRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherForecastRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/weather")
@@ -159,22 +158,4 @@ public class WeatherController {
             throw new WeatherApiException("Historical data cannot include future dates", null);
         }
     }
-
-    /**
-     * Validates WeatherDateRequest
-     */
-    private void validateWeatherDateRequest(WeatherDateRequest request) {
-        if (request.getLocation() == null || request.getLocation().trim().isEmpty()) {
-            throw new WeatherApiException("Location cannot be null or empty", null);
-        }
-        if (request.getLocation().length() < 2) {
-            throw new WeatherApiException("Location must be at least 2 characters long", null);
-        }
-        if (request.getDate() == null) {
-            throw new WeatherApiException("Date is required", null);
-        }
-        if (request.getDate().isAfter(LocalDate.now().plusDays(15))) {
-            throw new WeatherApiException("Date cannot be more than 15 days in the future", null);
-    }
-}
 }
