@@ -1,0 +1,59 @@
+# Local development environment configuration
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # Enable dev tools for local development
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+# Logging configuration for local development
+logging:
+  level:
+    root: INFO
+    vn.ttg.roadmap.weatherapiservice: DEBUG
+    org.springframework.cache: DEBUG
+    org.springframework.data.redis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+
+# Local-specific weather API settings
+weather:
+  api:
+    # Use a test API key for local development
+    key: T9FM85UY3S5VGQWPGKZYQL5UR
+    connect-timeout: 5s
+    read-timeout: 10s
+
+# Management endpoints for local development
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # Expose all endpoints for local debugging
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+
+# Local development specific settings
+app:
+  environment: local
+  debug: true

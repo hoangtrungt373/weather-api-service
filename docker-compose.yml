@@ -15,6 +15,31 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    networks:
+      - weather-network
+
+  weather-api:
+    build: .
+    container_name: weather-api-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - weather-network
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  weather-network:
+    driver: bridge
 
 volumes:
   redis-data:

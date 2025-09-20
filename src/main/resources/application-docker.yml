@@ -1,0 +1,69 @@
+# Docker environment configuration
+spring:
+  data:
+    redis:
+      host: redis  # Docker service name
+      port: 6379
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+
+  # Disable dev tools in Docker
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+# Logging configuration for Docker environment
+logging:
+  level:
+    root: INFO
+    vn.ttg.roadmap.weatherapiservice: INFO
+    org.springframework.cache: WARN
+    org.springframework.data.redis: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+  file:
+    name: /app/logs/weather-api-service.log
+    max-size: 100MB
+    max-history: 30
+
+# Docker-specific weather API settings
+weather:
+  api:
+    # Use environment variable for API key in Docker
+    key: ${WEATHER_API_KEY}
+    connect-timeout: 3s
+    read-timeout: 5s
+
+# Management endpoints for Docker environment
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+
+# Docker-specific settings
+app:
+  environment: docker
+  debug: false
+
+# Docker health check configuration
+health:
+  redis:
+    enabled: true
+  weather-api:
+    enabled: true
