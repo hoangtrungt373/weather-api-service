@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import vn.ttg.roadmap.weatherapiservice.controller.impl.WeatherServiceApiController;
 import vn.ttg.roadmap.weatherapiservice.dto.DayWeather;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherAlert;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
@@ -28,13 +29,13 @@ import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
 
 @ExtendWith(MockitoExtension.class)
-class WeatherControllerTest {
+class WeatherServiceApiControllerTest {
 
     @Mock
     private WeatherService weatherService;
 
     @InjectMocks
-    private WeatherController weatherController;
+    private WeatherServiceApiController weatherServiceApiController;
 
     private MockMvc mockMvc;
 
@@ -42,7 +43,7 @@ class WeatherControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
+        mockMvc = MockMvcBuilders.standaloneSetup(weatherServiceApiController)
                 .setControllerAdvice(new WeatherExceptionHandler())
                 .build();
 

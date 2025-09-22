@@ -1,5 +1,7 @@
 package vn.ttg.roadmap.weatherapiservice.dto;
 
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -7,9 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import vn.ttg.roadmap.weatherapiservice.validation.ValidDateRange;
-
-import java.time.LocalDate;
 
 /**
  * Request DTO for weather forecast endpoint
@@ -20,7 +19,6 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ValidDateRange(maxDaysInFuture = 15)
 public class WeatherForecastRequest {
     
     @NotBlank(message = "Location cannot be null or empty")

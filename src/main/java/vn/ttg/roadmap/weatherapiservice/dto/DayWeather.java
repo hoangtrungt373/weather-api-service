@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Response DTO for weather in specific day
  *
  * @author ttg
  */

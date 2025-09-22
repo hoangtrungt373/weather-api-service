@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Response DTO for weather alert if present
  *
  * @author ttg
  */

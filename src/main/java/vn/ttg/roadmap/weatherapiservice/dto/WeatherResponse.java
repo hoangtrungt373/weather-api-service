@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Response DTO for weather in date range, details for each day and alerts (if present)
  *
  * @author ttg
  */

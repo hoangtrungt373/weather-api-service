@@ -17,6 +17,13 @@ import org.springframework.web.client.RestTemplate;
 
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
 
+/**
+ * Service class for fetching weather API from 3rd party.
+ *
+ * <p><strong>Thread Safety:</strong> This class is thread-safe and can be used concurrently by multiple threads.</p>
+ *
+ *  @author ttg
+ */
 @Service
 public class WeatherService {
 

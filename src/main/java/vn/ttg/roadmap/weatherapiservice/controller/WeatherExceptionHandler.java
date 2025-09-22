@@ -29,14 +29,14 @@ import java.util.Set;
 @RestControllerAdvice
 public class WeatherExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(WeatherExceptionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WeatherExceptionHandler.class);
 
     /**
      * Handle WeatherApiException - custom business logic exceptions
      */
     @ExceptionHandler(WeatherApiException.class)
     public ResponseEntity<ErrorResponse> handleWeatherApiException(WeatherApiException ex) {
-        logger.error("Weather API exception: {}", ex.getMessage(), ex);
+        LOGGER.error("Weather API exception: {}", ex.getMessage(), ex);
         
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         if (ex.getMessage().contains("Invalid city") || 
@@ -61,7 +61,7 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        logger.warn("Validation error: {}", ex.getMessage());
+        LOGGER.warn("Validation error: {}", ex.getMessage());
         
         List<String> errors = new ArrayList<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -84,7 +84,7 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
-        logger.warn("Constraint violation: {}", ex.getMessage());
+        LOGGER.warn("Constraint violation: {}", ex.getMessage());
         
         List<String> errors = new ArrayList<>();
         Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
@@ -108,7 +108,7 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        logger.warn("Type mismatch error: {}", ex.getMessage());
+        LOGGER.warn("Type mismatch error: {}", ex.getMessage());
         
         String errorMessage = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
             ex.getValue(),
@@ -130,7 +130,7 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        logger.warn("JSON parsing error: {}", ex.getMessage());
+        LOGGER.warn("JSON parsing error: {}", ex.getMessage());
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
@@ -146,7 +146,7 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        logger.error("Unexpected error occurred: {}", ex.getMessage(), ex);
+        LOGGER.error("Unexpected error occurred: {}", ex.getMessage(), ex);
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
