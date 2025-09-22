@@ -1,5 +1,7 @@
 package vn.ttg.roadmap.weatherapiservice.exception;
 
+import org.springframework.http.HttpStatus;
+
 import lombok.Getter;
 
 /**
@@ -10,25 +12,29 @@ import lombok.Getter;
 @Getter
 public class WeatherApiException extends RuntimeException {
 
-    private final String errorCode;
-    private final String errorMessage;
+    private final WeatherErrorCode errorCode;
 
-    public WeatherApiException(WeatherErrorCode weatherErrorCode) {
-        super(weatherErrorCode.getMessage());
-        this.errorCode = weatherErrorCode.getCode();
-        this.errorMessage = weatherErrorCode.getMessage();
+    public WeatherApiException(WeatherErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 
-    public WeatherApiException(WeatherErrorCode weatherErrorCode, String message) {
-        super(weatherErrorCode.getMessage());
-        this.errorCode = weatherErrorCode.getCode();
-        this.errorMessage = message;
+    public WeatherApiException(WeatherErrorCode errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
     }
 
-    public WeatherApiException(WeatherErrorCode weatherErrorCode, String message, Throwable e) {
-        super(weatherErrorCode.getMessage(), e);
-        this.errorCode = weatherErrorCode.getCode();
-        this.errorMessage = message;
+    public WeatherApiException(WeatherErrorCode errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorCodeString() {
+        return errorCode.getCode();
+    }
+
+    public int getHttpStatusCode() {
+        return HttpStatus.BAD_REQUEST.value();
     }
 }
 

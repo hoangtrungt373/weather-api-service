@@ -39,13 +39,14 @@ public class WeatherExceptionHandler {
     public ResponseEntity<ErrorResponse> handleWeatherApiException(WeatherApiException ex) {
         LOGGER.error("Weather API exception: {} [{}]", ex.getMessage(), ex.getErrorCode(), ex);
 
+        HttpStatus status = HttpStatus.valueOf(ex.getHttpStatusCode());
         ErrorResponse errorResponse = new ErrorResponse(
-            HttpStatus.BAD_REQUEST.value(),
-            ex.getErrorCode(),
-            ex.getMessage(),
-            LocalDateTime.now()
+                status.value(),
+                ex.getErrorCodeString(),
+                ex.getMessage(),
+                LocalDateTime.now()
         );
-        
+
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
