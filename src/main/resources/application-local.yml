@@ -20,6 +20,10 @@ spring:
     livereload:
       enabled: true
 
+# Local server configuration
+server:
+  port: 8081
+
 # Logging configuration for local development
 logging:
   level:

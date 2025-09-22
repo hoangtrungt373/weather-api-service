@@ -7,12 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import vn.ttg.roadmap.weatherapiservice.dto.ErrorResponse;
-import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
+import vn.ttg.roadmap.weatherapiservice.exception.WeatherApiException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -36,24 +37,16 @@ public class WeatherExceptionHandler {
      */
     @ExceptionHandler(WeatherApiException.class)
     public ResponseEntity<ErrorResponse> handleWeatherApiException(WeatherApiException ex) {
-        LOGGER.error("Weather API exception: {}", ex.getMessage(), ex);
-        
-        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
-        if (ex.getMessage().contains("Invalid city") || 
-            ex.getMessage().contains("Invalid parameters") ||
-            ex.getMessage().contains("cannot be null") ||
-            ex.getMessage().contains("must be") ||
-            ex.getMessage().contains("cannot be after")) {
-            status = HttpStatus.BAD_REQUEST;
-        }
-        
+        LOGGER.error("Weather API exception: {} [{}]", ex.getMessage(), ex.getErrorCode(), ex);
+
         ErrorResponse errorResponse = new ErrorResponse(
-            status.value(),
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getErrorCode(),
             ex.getMessage(),
             LocalDateTime.now()
         );
         
-        return ResponseEntity.status(status).body(errorResponse);
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     /**
@@ -97,6 +90,28 @@ public class WeatherExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             "Constraint violation: " + String.join(", ", errors),
+            LocalDateTime.now()
+        );
+        
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    /**
+     * Handle missing required request parameters
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException ex) {
+        LOGGER.warn("Missing required parameter: {}", ex.getMessage());
+        
+        String parameterName = ex.getParameterName();
+        String parameterType = ex.getParameterType();
+        
+        String errorMessage = String.format("Required request parameter '%s' of type %s is not present", 
+            parameterName, parameterType);
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            errorMessage,
             LocalDateTime.now()
         );
         

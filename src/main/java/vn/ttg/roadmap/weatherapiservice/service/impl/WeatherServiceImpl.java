@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -16,7 +15,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
-import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
+import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
+import vn.ttg.roadmap.weatherapiservice.exception.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
 
 /**
@@ -74,19 +74,22 @@ public class WeatherServiceImpl implements WeatherService {
         } catch (HttpClientErrorException e) {
             LOGGER.error("Client error when fetching weather for location: {}, status: {}, message: {}",
                     location, e.getStatusCode(), e.getMessage());
-            throw new WeatherApiException("Invalid city or parameters: " + e.getMessage(), e);
+            throw new WeatherApiException(WeatherErrorCode.INVALID_PARAMETERS, e.getMessage(), e);
+            
         } catch (HttpServerErrorException e) {
             LOGGER.error("Server error when fetching weather for location: {}, status: {}, message: {}",
                     location, e.getStatusCode(), e.getMessage());
-            throw new WeatherApiException("Weather API server error. Try later.", e);
+            throw new WeatherApiException(WeatherErrorCode.WEATHER_API_SERVER_ERROR, e.getMessage(), e);
+            
         } catch (ResourceAccessException e) {
             LOGGER.error("Connection error when fetching weather for location: {}, message: {}",
                     location, e.getMessage());
-            throw new WeatherApiException("Weather API unavailable. Try later.", e);
+            throw new WeatherApiException(WeatherErrorCode.WEATHER_API_UNAVAILABLE, e.getMessage(), e);
+            
         } catch (Exception e) {
             LOGGER.error("Unexpected error when fetching weather for location: {}, message: {}",
                     location, e.getMessage(), e);
-            throw new WeatherApiException("Unexpected error occurred while fetching weather data.", e);
+            throw new WeatherApiException(WeatherErrorCode.UNEXPECTED_ERROR, e.getMessage(), e);
         }
     }
 }

@@ -1,6 +1,7 @@
 package vn.ttg.roadmap.weatherapiservice.controller.impl;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,8 @@ import vn.ttg.roadmap.weatherapiservice.dto.CurrentWeatherRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.HistoricalWeatherRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherForecastRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
-import vn.ttg.roadmap.weatherapiservice.service.WeatherApiException;
+import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
+import vn.ttg.roadmap.weatherapiservice.exception.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
 
 /**
@@ -85,7 +87,7 @@ public class WeatherServiceApiController implements WeatherServiceApi {
         validateLocation(request.getLocation());
         validateDateRange(request.getStartDate(), request.getEndDate());
         if (request.getStartDate().isAfter(LocalDate.now().plusDays(15))) {
-            throw new WeatherApiException("Start date cannot be more than 15 days in the future", null);
+            throw new WeatherApiException(WeatherErrorCode.START_DATE_TOO_FAR_FUTURE);
         }
     }
 
@@ -93,28 +95,33 @@ public class WeatherServiceApiController implements WeatherServiceApi {
         validateLocation(request.getLocation());
         validateDateRange(request.getStartDate(), request.getEndDate());
         if (request.getStartDate().isAfter(LocalDate.now())) {
-            throw new WeatherApiException("Historical data cannot include future dates", null);
+            throw new WeatherApiException(WeatherErrorCode.HISTORICAL_DATE_FUTURE);
         }
         if (request.getEndDate().isAfter(LocalDate.now())) {
-            throw new WeatherApiException("Historical data cannot include future dates", null);
+            throw new WeatherApiException(WeatherErrorCode.HISTORICAL_DATE_FUTURE);
         }
     }
 
     private void validateLocation(String location) {
         if (location == null || location.trim().isEmpty()) {
-            throw new WeatherApiException("Location cannot be null or empty", null);
+            throw new WeatherApiException(WeatherErrorCode.LOCATION_EMPTY);
         }
         if (location.length() < 2) {
-            throw new WeatherApiException("Location must be at least 2 characters long", null);
+            throw new WeatherApiException(WeatherErrorCode.LOCATION_TOO_SHORT);
         }
     }
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
-            throw new WeatherApiException("Both start and end dates are required", null);
+            throw new WeatherApiException(WeatherErrorCode.MISSING_REQUIRED_PARAMETER, 
+                "Both start and end dates are required");
         }
         if (startDate.isAfter(endDate)) {
-            throw new WeatherApiException("Start date cannot be after end date", null);
+            throw new WeatherApiException(WeatherErrorCode.START_DATE_AFTER_END_DATE);
+        }
+        long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        if (numberOfDays > 15) {
+            throw new WeatherApiException(WeatherErrorCode.MAX_DAYS_EXCEEDED);
         }
     }
 }

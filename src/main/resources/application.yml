@@ -20,7 +20,7 @@ cache:
 weather:
   api:
     base-url: https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline
-    key: T9FM85UY3S5VGQWPGKZYQL5UR
+    key: YOUR_API_KEY_HERE  # Replace with your actual API key or use environment variable
     connect-timeout: 3s
     read-timeout: 5s
 
