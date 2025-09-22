@@ -7,7 +7,7 @@ spring:
 
 # Common server configuration
 server:
-  port: 8081
+  port: 8080
 
 # Common cache TTL configuration
 cache:
@@ -20,7 +20,7 @@ cache:
 weather:
   api:
     base-url: https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline
-    key: YOUR_API_KEY_HERE
+    key: T9FM85UY3S5VGQWPGKZYQL5UR
     connect-timeout: 3s
     read-timeout: 5s
 
