@@ -4,6 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 
+/**
+ * A Cache implementation that logs cache operations for monitoring and debugging purposes.
+ * This class wraps an existing Cache instance and logs details of each operation including
+ * the operation type, key, hit/miss status, and time taken.
+ *
+ * @author ttg
+ */
 public class LoggingCache implements Cache {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingCache.class);
     private final Cache delegate;

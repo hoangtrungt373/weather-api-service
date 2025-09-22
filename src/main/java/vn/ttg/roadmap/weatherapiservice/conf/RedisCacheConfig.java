@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.ttg.roadmap.weatherapiservice.listener.LoggingCacheManager;
 
 /**
+ * Configuration class for Redis caching
  *
  * @author ttg
  */
@@ -37,6 +38,22 @@ public class RedisCacheConfig {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * Configure the RedisCacheConfiguration with custom key and value serializers.
+     * The value serializer uses GenericJackson2JsonRedisSerializer with an custom ObjectMapper
+     * that has default typing activated to handle polymorphic types.
+     * <p>
+     * // Without type info (default)
+     * {"resolvedAddress": "London", "description": "Sunny"}
+     * <p>
+     * // With type info (this configuration), prevent ClassCastException when reading from cache.
+     * {
+     *   "@class": "vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse",
+     *   "resolvedAddress": "London",
+     *   "description": "Sunny"
+     * }
+     *
+     */
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
 
@@ -63,6 +80,10 @@ public class RedisCacheConfig {
         return builder.build();
     }
 
+    /**
+     * Customize the RedisCacheManager to set different TTLs for different cache names.
+     * The TTL values are injected from application properties.
+     */
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
             @Value("${cache.ttl.weathers-current}") Duration currentTtl,
@@ -76,6 +97,12 @@ public class RedisCacheConfig {
                 .withCacheConfiguration("weathers-historical", baseConfig.entryTtl(historicalTtl));
     }
 
+    /**
+     * Custom key generator for weather caching.
+     * Generates keys based on method parameters:
+     * - For current weather: "location:today"
+     * - For forecast/historical: "location:startDate:endDate"
+     */
     @Bean("weatherKeyGenerator")
     public KeyGenerator weatherKeyGenerator() {
         return (target, method, params) -> {
@@ -104,6 +131,10 @@ public class RedisCacheConfig {
         return template;
     }
 
+    /**
+     * Primary CacheManager that wraps the delegate RedisCacheManager to add logging functionality.
+     * This allows monitoring cache hits and misses.
+     */
     @Bean
     @Primary
     public CacheManager cacheManager(@Qualifier("delegateRedisCacheManager") RedisCacheManager delegate) {
