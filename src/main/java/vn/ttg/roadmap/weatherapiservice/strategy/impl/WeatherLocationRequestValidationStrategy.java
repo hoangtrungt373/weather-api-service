@@ -7,6 +7,7 @@ import vn.ttg.roadmap.weatherapiservice.dto.WeatherRequestValidationResult;
 import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
 import vn.ttg.roadmap.weatherapiservice.strategy.WeatherRequestValidationContext;
 import vn.ttg.roadmap.weatherapiservice.strategy.WeatherRequestValidationStrategy;
+import vn.ttg.roadmap.weatherapiservice.visitor.WeatherRequestDataExtractor;
 
 /**
  *
@@ -17,8 +18,7 @@ public class WeatherLocationRequestValidationStrategy implements WeatherRequestV
 
     @Override
     public WeatherRequestValidationResult validate(WeatherRequest request) {
-        String location = WeatherRequestValidationContext.getLocation(request);
-
+        String location = WeatherRequestDataExtractor.getLocation(request);
         if (location == null || location.trim().isEmpty()) {
             return WeatherRequestValidationResult.failure(WeatherErrorCode.LOCATION_EMPTY);
         }

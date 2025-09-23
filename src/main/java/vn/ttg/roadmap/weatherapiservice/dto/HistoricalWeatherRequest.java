@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.ttg.roadmap.weatherapiservice.visitor.WeatherRequestVisitor;
 
 import java.time.LocalDate;
 
@@ -33,4 +34,9 @@ public class HistoricalWeatherRequest implements WeatherRequest {
     @NotNull(message = "End date is required")
     @Past(message = "End date must be in the past")
     private LocalDate endDate;
+
+    @Override
+    public <T> T accept(WeatherRequestVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

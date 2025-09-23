@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.ttg.roadmap.weatherapiservice.visitor.WeatherRequestVisitor;
 
 /**
  * Request DTO for weather forecast endpoint
@@ -30,4 +31,9 @@ public class WeatherForecastRequest implements WeatherRequest{
     
     @NotNull(message = "End date is required")
     private LocalDate endDate;
+
+    @Override
+    public <T> T accept(WeatherRequestVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

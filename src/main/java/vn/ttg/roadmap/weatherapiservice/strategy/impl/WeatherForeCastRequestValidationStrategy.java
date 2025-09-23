@@ -9,6 +9,7 @@ import vn.ttg.roadmap.weatherapiservice.dto.WeatherRequestValidationResult;
 import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
 import vn.ttg.roadmap.weatherapiservice.strategy.WeatherRequestValidationContext;
 import vn.ttg.roadmap.weatherapiservice.strategy.WeatherRequestValidationStrategy;
+import vn.ttg.roadmap.weatherapiservice.visitor.WeatherRequestDataExtractor;
 
 /**
  *
@@ -19,7 +20,7 @@ public class WeatherForeCastRequestValidationStrategy implements WeatherRequestV
 
     @Override
     public WeatherRequestValidationResult validate(WeatherRequest request) {
-        LocalDate startDate = WeatherRequestValidationContext.getStartDate(request);
+        LocalDate startDate = WeatherRequestDataExtractor.getStartDate(request);
         if (startDate.isAfter(LocalDate.now().plusDays(15))) {
             return WeatherRequestValidationResult.failure(WeatherErrorCode.START_DATE_TOO_FAR_FUTURE);
         }
