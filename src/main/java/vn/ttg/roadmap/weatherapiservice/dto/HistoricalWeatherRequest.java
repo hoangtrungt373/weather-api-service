@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HistoricalWeatherRequest {
+public class HistoricalWeatherRequest implements WeatherRequest {
     
     @NotBlank(message = "Location cannot be null or empty")
     @Size(min = 2, max = 100, message = "Location must be between 2 and 100 characters")

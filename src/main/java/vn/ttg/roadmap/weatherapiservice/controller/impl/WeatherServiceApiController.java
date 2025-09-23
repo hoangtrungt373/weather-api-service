@@ -1,7 +1,8 @@
 package vn.ttg.roadmap.weatherapiservice.controller.impl;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,12 @@ import vn.ttg.roadmap.weatherapiservice.controller.WeatherServiceApi;
 import vn.ttg.roadmap.weatherapiservice.dto.CurrentWeatherRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.HistoricalWeatherRequest;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherForecastRequest;
+import vn.ttg.roadmap.weatherapiservice.dto.WeatherRequest;
+import vn.ttg.roadmap.weatherapiservice.dto.WeatherRequestValidationResult;
 import vn.ttg.roadmap.weatherapiservice.dto.WeatherResponse;
-import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
 import vn.ttg.roadmap.weatherapiservice.exception.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.service.WeatherService;
+import vn.ttg.roadmap.weatherapiservice.strategy.WeatherRequestValidationContext;
 
 /**
  * Controller implementation the WeatherServiceApi.
@@ -30,17 +33,26 @@ public class WeatherServiceApiController implements WeatherServiceApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WeatherServiceApiController.class);
 
+    private static final List<WeatherRequestValidationContext.Type> CURRENT_WEATHER_REQUEST_VALIDATION_STRATEGY = Arrays.asList(
+            WeatherRequestValidationContext.Type.LOCATION);
+    private static final List<WeatherRequestValidationContext.Type> FORECAST_WEATHER_REQUEST_VALIDATION_STRATEGY = Arrays.asList(
+            WeatherRequestValidationContext.Type.LOCATION, WeatherRequestValidationContext.Type.DATE_RANGE, WeatherRequestValidationContext.Type.FORECAST);
+    private static final List<WeatherRequestValidationContext.Type> HISTORICAL_WEATHER_REQUEST_VALIDATION_STRATEGY = Arrays.asList(
+            WeatherRequestValidationContext.Type.LOCATION, WeatherRequestValidationContext.Type.DATE_RANGE, WeatherRequestValidationContext.Type.HISTORICAL);
+
     @Autowired
     private WeatherService weatherService;
+    @Autowired
+    private WeatherRequestValidationContext validationContext;
 
     @Override
     public ResponseEntity<WeatherResponse> getCurrentWeather(@RequestParam String location) {
         
         LOGGER.info("Received request for current weather: {}", location);
-        
+
         CurrentWeatherRequest request = new CurrentWeatherRequest(location);
-        validateCurrentWeatherRequest(request);
-        
+        validateWeatherRequest(CURRENT_WEATHER_REQUEST_VALIDATION_STRATEGY, request);
+
         WeatherResponse response = weatherService.getCurrentWeather(location);
         LOGGER.info("Successfully retrieved current weather for: {}", location);
         return ResponseEntity.ok(response);
@@ -55,7 +67,7 @@ public class WeatherServiceApiController implements WeatherServiceApi {
         LOGGER.info("Received request for forecast: {} from {} to {}", location, startDate, endDate);
         
         WeatherForecastRequest request = new WeatherForecastRequest(location, startDate, endDate);
-        validateForecastRequest(request);
+        validateWeatherRequest(FORECAST_WEATHER_REQUEST_VALIDATION_STRATEGY, request);
 
         WeatherResponse response = weatherService.getForecast(location, startDate, endDate);
         LOGGER.info("Successfully retrieved forecast for: {} from {} to {}", location, startDate, endDate);
@@ -71,7 +83,7 @@ public class WeatherServiceApiController implements WeatherServiceApi {
         LOGGER.info("Received request for historical weather: {} from {} to {}", location, startDate, endDate);
         
         HistoricalWeatherRequest request = new HistoricalWeatherRequest(location, startDate, endDate);
-        validateHistoricalWeatherRequest(request);
+        validateWeatherRequest(HISTORICAL_WEATHER_REQUEST_VALIDATION_STRATEGY, request);
 
         WeatherResponse response = weatherService.getHistorical(location, startDate, endDate);
         LOGGER.info("Successfully retrieved historical weather for: {} from {} to {}",
@@ -79,49 +91,13 @@ public class WeatherServiceApiController implements WeatherServiceApi {
         return ResponseEntity.ok(response);
     }
 
-    private void validateCurrentWeatherRequest(CurrentWeatherRequest request) {
-        validateLocation(request.getLocation());
-    }
+    private void validateWeatherRequest(List<WeatherRequestValidationContext.Type> stategies, WeatherRequest request) {
+        stategies.forEach(strategy -> {
+            WeatherRequestValidationResult result = validationContext.validate(strategy, request);
 
-    private void validateForecastRequest(WeatherForecastRequest request) {
-        validateLocation(request.getLocation());
-        validateDateRange(request.getStartDate(), request.getEndDate());
-        if (request.getStartDate().isAfter(LocalDate.now().plusDays(15))) {
-            throw new WeatherApiException(WeatherErrorCode.START_DATE_TOO_FAR_FUTURE);
-        }
-    }
-
-    private void validateHistoricalWeatherRequest(HistoricalWeatherRequest request) {
-        validateLocation(request.getLocation());
-        validateDateRange(request.getStartDate(), request.getEndDate());
-        if (request.getStartDate().isAfter(LocalDate.now())) {
-            throw new WeatherApiException(WeatherErrorCode.HISTORICAL_DATE_FUTURE);
-        }
-        if (request.getEndDate().isAfter(LocalDate.now())) {
-            throw new WeatherApiException(WeatherErrorCode.HISTORICAL_DATE_FUTURE);
-        }
-    }
-
-    private void validateLocation(String location) {
-        if (location == null || location.trim().isEmpty()) {
-            throw new WeatherApiException(WeatherErrorCode.LOCATION_EMPTY);
-        }
-        if (location.length() < 2) {
-            throw new WeatherApiException(WeatherErrorCode.LOCATION_TOO_SHORT);
-        }
-    }
-
-    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
-        if (startDate == null || endDate == null) {
-            throw new WeatherApiException(WeatherErrorCode.MISSING_REQUIRED_PARAMETER, 
-                "Both start and end dates are required");
-        }
-        if (startDate.isAfter(endDate)) {
-            throw new WeatherApiException(WeatherErrorCode.START_DATE_AFTER_END_DATE);
-        }
-        long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-        if (numberOfDays > 15) {
-            throw new WeatherApiException(WeatherErrorCode.MAX_DAYS_EXCEEDED);
-        }
+            if (!result.isValid()) {
+                throw new WeatherApiException(result.getErrorCode(), result.getMessage());
+            }
+        });
     }
 }
