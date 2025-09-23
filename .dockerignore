@@ -34,7 +34,7 @@ Dockerfile
 docker-compose*.yml
 
 # Environment files
-.env
+.env_template
 .env.local
 .env.*.local
 
