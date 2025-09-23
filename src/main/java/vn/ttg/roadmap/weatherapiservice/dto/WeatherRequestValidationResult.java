@@ -1,11 +1,9 @@
 package vn.ttg.roadmap.weatherapiservice.dto;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import vn.ttg.roadmap.weatherapiservice.exception.WeatherApiException;
 import vn.ttg.roadmap.weatherapiservice.exception.WeatherErrorCode;
 
 /**
